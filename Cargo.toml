@@ -14,5 +14,5 @@ name = "macro_asm_builder"
 path = "src/macro_asm_builder.rs"
 
 [dependencies]
-math-parse = "0.4.0"
+math-parse = "1.0.2"
 

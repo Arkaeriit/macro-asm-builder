@@ -34,11 +34,14 @@ fn register_define(asm: &mut Assembler) {
                         for word in &code[2..] {
                             math_line.push_str(word);
                         }
-                        match math_parse::math_parse_int(&math_line, Some(&math_variables)) {
-                            Ok(i) => {
-                                let _ = asm.defines.insert(name.to_string(), vec![format!("{i}")]);
-                                let _ = math_variables.insert(name.to_string(), format!("{i}"));
-                                Some(Empty)
+                        match math_parse::MathParse::parse(&math_line) {
+                            Ok(parsed) => match parsed.solve_int(Some(&math_variables)) {
+                                Ok(i) => {
+                                    let _ = asm.defines.insert(name.to_string(), vec![format!("{i}")]);
+                                    let _ = math_variables.insert(name.to_string(), format!("{i}"));
+                                    Some(Empty)
+                                },
+                                Err(err) => Some(Error{msg: format!("Error while parsing math: {}\n", err), meta: meta.clone()}),
                             },
                             Err(err) => Some(Error{msg: format!("Error while parsing math: {}\n", err), meta: meta.clone()}),
                         }
