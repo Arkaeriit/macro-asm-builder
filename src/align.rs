@@ -131,6 +131,7 @@ fn test_pad_until() {
     asm.align_pattern = vec![0, 1];
     super::raw::decode_raw_bytes(&mut asm);
     register_align(&mut asm);
+    assert_eq!(asm.root.to_string(),"Pad until address 5\n0x10 \nAlign to 7 bytes\n");
     expand_align(&mut asm);
     assert_eq!(asm.root.to_string(),"0x00 0x01 0x00 0x01 0x00 \n0x10 \n0x00 \n");
 }

@@ -104,6 +104,7 @@ fn test_parse_line() {
     test_eq("  abc def  ", vec!["abc", "def"]);
     test_eq("  abc def;bla bla  ", vec!["abc", "def"]);
     test_eq("  abc def ; bla bla  ", vec!["abc", "def"]);
+    test_eq("abcd \"\\r\\t\" efg", vec!["abcd", "\r\t", "efg"]);
 }
 
 #[test]

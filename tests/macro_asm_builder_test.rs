@@ -142,3 +142,15 @@ At line 5 from file ./__asm_init: `@constant 100000000`
     }
 }
 
+#[test]
+fn test_label_dump() {
+    const CODE: &str = "@label top
+    @pad-until 10
+    @label mid
+    @pad-until 25
+    @label bot";
+    let mut asm = macro_asm_builder::Assembler::from_text(CODE);
+    let _ = asm.assemble().unwrap();
+    assert_eq!(asm.label_dump(), "top: 0x0\nmid: 0xA\nbot: 0x19\n".to_string());
+}
+
