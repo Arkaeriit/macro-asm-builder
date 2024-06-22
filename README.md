@@ -80,6 +80,8 @@ As alternatives to `@string`, there is also `@string-nl`, `@string-0`, and `@str
 
 ## Usage
 
+### Basic use
+
 Usage of the macro-asm-builder is done in the following way:
 
 ```rust
@@ -107,6 +109,14 @@ match asm.assemble() {
 Internally, the lines of assembly language are handled as list of string, each string being a word. As such, the two functions you must plug in the assembler are:
 * `micro_assembly`: Takes a `&Vec<String>` as argument, returns `Ok(Vec<u8>)` which contains bytes of machine code if the input is correct or `Err(String)` which contains an error messages otherwise.
 * `implementation_macro`: Takes a `&Vec<String>` as argument. If the input should be expanded as a macro, it should return `Ok(Some(String))` with expended assembly language. If no macro expansion is needed, it should return `Ok(None)`. To return an error message, it should give `Err(String)`.
+
+### Extra options
+
+There is some extra fields you can optionally configure to alter the behavior of the assembler:
+
+* `start_addr`: The address of the first byte of the output binary. Default to 0.
+
+You can find all those informations and more in the ![documentation](https://docs.rs/macro-asm-builder/0.1.0/macro_asm_builder/index.html).
 
 ## Examples
 

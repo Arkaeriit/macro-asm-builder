@@ -62,7 +62,7 @@ pub struct Assembler<'a> {
     align_pattern: Vec<u8>,
 
     /// Address of the first instruction of first data in the resulting binary
-    start_address: usize,
+    pub start_address: usize,
 
     /// A function that expand implementation-specifics macros. Takes a vector
     /// of tokens from a line of code and return Ok<None> if no macro expansion
