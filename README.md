@@ -117,7 +117,7 @@ There is some extra fields you can optionally configure to alter the behavior of
 * `start_addr`: The address of the first byte of the output binary. Defaults to 0.
 * `align_pattern`: Pattern of bytes to write when the assembler needs too add some padding. Defaults to null bytes.
 
-You can find all those informations and more in the ![documentation](https://docs.rs/macro-asm-builder/1.0.0/macro_asm_builder/index.html).
+You can find all those informations and more in the [documentation](https://docs.rs/macro-asm-builder/1.0.0/macro_asm_builder/index.html).
 
 ## Examples
 
