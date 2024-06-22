@@ -114,10 +114,10 @@ Internally, the lines of assembly language are handled as list of string, each s
 
 There is some extra fields you can optionally configure to alter the behavior of the assembler:
 
-* `start_addr`: The address of the first byte of the output binary. Default to 0.
-* `align_pattern`: Pattern of bytes to write when the assembler needs too add some padding. Default to null bytes.
+* `start_addr`: The address of the first byte of the output binary. Defaults to 0.
+* `align_pattern`: Pattern of bytes to write when the assembler needs too add some padding. Defaults to null bytes.
 
-You can find all those informations and more in the ![documentation](https://docs.rs/macro-asm-builder/0.1.0/macro_asm_builder/index.html).
+You can find all those informations and more in the ![documentation](https://docs.rs/macro-asm-builder/1.0.0/macro_asm_builder/index.html).
 
 ## Examples
 
