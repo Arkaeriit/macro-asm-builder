@@ -154,3 +154,14 @@ fn test_label_dump() {
     assert_eq!(asm.label_dump(), "top: 0x0\nmid: 0xA\nbot: 0x19\n".to_string());
 }
 
+#[test]
+fn test_start_addr() {
+    const CODE: &str = "@labref start";
+    let mut asm = make_assembler(CODE);
+    asm.start_address = 10;
+    let data = asm.assemble().unwrap();
+    assert_eq!(data, vec![0x11, 0, // runtime_start
+                          12,   0, // labref to start}
+                          0]);     // alignment in the runtime end
+}
+
