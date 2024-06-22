@@ -59,7 +59,7 @@ pub struct Assembler<'a> {
     wordsize: usize,
 
     /// The pattern that will be put as padding to replace `@align` directives
-    align_pattern: Vec<u8>,
+    pub align_pattern: Vec<u8>,
 
     /// Address of the first instruction of first data in the resulting binary
     pub start_address: usize,
