@@ -92,7 +92,7 @@ pub fn expand_labels(asm: &mut Assembler) {
 /// Generate a nice list showing the address of each label
 pub fn label_dump(asm: &mut Assembler) -> String {
     let mut ret = String::new();
-    let mut current_offset = 0;
+    let mut current_offset = asm.start_address;
     let mut dumping_labels = | node: &AsmNode | -> Option<AsmNode> {
         match node {
             Label{name, is_definition, meta: _} => {

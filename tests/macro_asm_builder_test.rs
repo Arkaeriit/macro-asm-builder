@@ -150,8 +150,9 @@ fn test_label_dump() {
     @pad-until 25
     @label bot";
     let mut asm = macro_asm_builder::Assembler::from_text(CODE);
+    asm.start_address = 2;
     let _ = asm.assemble().unwrap();
-    assert_eq!(asm.label_dump(), "top: 0x0\nmid: 0xA\nbot: 0x19\n".to_string());
+    assert_eq!(asm.label_dump(), "top: 0x2\nmid: 0xA\nbot: 0x19\n".to_string());
 }
 
 #[test]
