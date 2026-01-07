@@ -87,6 +87,15 @@ pub fn register_macros(asm: &mut Assembler) -> bool {
     registered_macro
 }
 
+/// Perform all the replacement suitable for macro expantion.
+fn substitution_for_expantion(expanded_text: &str, pattern_from: &str, pattern_to: &str) -> String {
+    let replacement_slashes_escaped = pattern_to.replace("\\", "\\\\");
+    let replacement_all_escaped = replacement_slashes_escaped.replace("\"", "\\\"");
+    let replacement_quoted = format!("\"{}\"", replacement_all_escaped);
+    let replacement_mono_line = replacement_quoted.replace("\n", "\\n");
+    expanded_text.replace(&pattern_from, &replacement_mono_line)
+}
+
 /// Search all the sources lines of the code for macro to be expanded. In those
 /// cases, the content of the macro is fetched from the assembler's macro list
 /// and the lines are replaced with an Inode containing the expanded macro.
@@ -111,11 +120,7 @@ pub fn expand_macros(asm: &mut Assembler) -> bool {
                         let mut expanded_text = macro_txt.clone();
                         for i in 0..number_of_arguments {
                             let pattern = format!("${}", i+1);
-                            let replacement_slashes_escaped = code[1+i].replace("\\", "\\\\");
-                            let replacement_all_escaped = replacement_slashes_escaped.replace("\"", "\\\"");
-                            let replacement_quoted = format!("\"{}\"", replacement_all_escaped);
-                            let replacement_mono_line = replacement_quoted.replace("\n", "\\n");
-                            expanded_text = expanded_text.replace(&pattern, &replacement_mono_line);
+                            expanded_text = substitution_for_expantion(&expanded_text, &pattern, &code[i+1]);
                         }
                         // Result generation
                         let mut expanded_macro = Assembler::from_named_text(&expanded_text, &format!("`macro '{}' expanded from file {} at line {}`", macro_name, meta.source_file, meta.line));
