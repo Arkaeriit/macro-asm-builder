@@ -92,6 +92,9 @@ Usage of the macro-asm-builder is done in the following way:
 // Initializing the assembler with an input assembly text file
 let mut asm = macro_asm_builder::Assembler::from_file("file path");
 
+// Set the size of addresses and main words in bits
+asm.set_word_size(32);
+
 // Indicating the function that transform raw instrinctions into machine code
 asm.micro_assembly = &my_micro_assembly_function;
 
