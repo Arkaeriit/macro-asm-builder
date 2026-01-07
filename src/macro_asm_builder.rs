@@ -167,9 +167,9 @@ impl Assembler<'_> {
         const TEXT_ADDING_PASSES: [&dyn Fn(&mut Assembler) -> bool; 5] = [
             &import::include_source,
             &macros::register_macros,
+            &define::handle_define,
             &run_implementation_macros,
             &macros::expand_macros,
-            &define::handle_define,
         ];
 
         let mut pass_index = 0;
