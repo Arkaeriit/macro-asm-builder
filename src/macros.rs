@@ -2,23 +2,20 @@ use crate::Assembler;
 use crate::tree::AsmNode::*;
 use crate::tree::*;
 
-/// The content of a macro is defined by the number of arguments in need to be
-/// substituted and the source code content that will replace the macro
-/// invocation.
-#[derive(Clone, Debug, PartialEq)]
-pub struct Macro {
+/// Macros are identified by their name and the number of argument they take.
+/// The macro ID is used to index their content (a string that will be
+/// processed) in a hash map.
+#[derive(Clone, Debug, PartialEq, Hash, Eq)]
+pub struct MacroID {
+    name: String,
     number_of_arguments: usize,
-    content: String,
 }
 
-impl Macro {
+impl MacroID {
     /// Generate a new empty macro. Its content will be filled with new lines
     /// of source code.
-    fn new(number_of_arguments: usize) -> Self {
-        Macro {
-            number_of_arguments: number_of_arguments,
-            content: "".to_string(),
-        }
+    fn new(name: &str, number_of_arguments: usize) -> Self {
+        MacroID {name: name.to_string(), number_of_arguments}
     }
 }
 
@@ -29,8 +26,8 @@ impl Macro {
 pub fn register_macros(asm: &mut Assembler) -> bool {
     let mut registered_macro = false;
     let mut in_macro = false;
-    let mut new_macro = Macro::new(0);
-    let mut new_macro_name = "".to_string();
+    let mut new_macro_id = MacroID::new("", 0);
+    let mut new_macro_content = "".to_string();
 
     let mut register_macros_closure = | node: &AsmNode | -> Option<AsmNode> {
         match node {
@@ -42,11 +39,11 @@ pub fn register_macros(asm: &mut Assembler) -> bool {
                         } else {
                             if code.len() == 3 {
                                 in_macro = true;
-                                new_macro_name = code[1].clone();
+                                new_macro_id.name = code[1].clone();
                                 let number_of_arguments: Result<usize, _> = code[2].parse();
                                 match number_of_arguments {
                                     Ok(x) => {
-                                        new_macro = Macro::new(x);
+                                        new_macro_id.number_of_arguments = x;
                                         Some(Empty)
                                     },
                                     Err(_) =>
@@ -60,7 +57,8 @@ pub fn register_macros(asm: &mut Assembler) -> bool {
                     "@end" => {
                         if in_macro {
                             in_macro = false;
-                            asm.macros.insert(new_macro_name.clone(), new_macro.clone());
+                            asm.macros.insert(new_macro_id.clone(), new_macro_content.clone());
+                            new_macro_content = "".to_string();
                             registered_macro = true;
                             Some(Empty)
                         } else {
@@ -69,8 +67,8 @@ pub fn register_macros(asm: &mut Assembler) -> bool {
                     },
                     _ => {
                         if in_macro {
-                            new_macro.content.push_str(&meta.raw);
-                            new_macro.content.push_str("\n");
+                            new_macro_content.push_str(&meta.raw);
+                            new_macro_content.push_str("\n");
                             Some(Empty)
                         } else {
                             None
@@ -84,7 +82,7 @@ pub fn register_macros(asm: &mut Assembler) -> bool {
 
     asm.root.traverse_tree(&mut register_macros_closure);
     if in_macro {
-        asm.root.error_on_top(format!("Error, macro {} is not closed with `@end` directive", new_macro_name));
+        asm.root.error_on_top(format!("Error, macro {} is not closed with `@end` directive", new_macro_id.name));
     }
     registered_macro
 }
@@ -102,33 +100,30 @@ pub fn expand_macros(asm: &mut Assembler) -> bool {
         // must call expand_macros inside of it.
         match node {
             Source{code, meta} => {
-                match asm.macros.get(&code[0]) {
+                let number_of_arguments = code.len() - 1;
+                let macro_id = MacroID::new(&code[0], number_of_arguments);
+                match asm.macros.get(&macro_id) {
                     Some(macro_txt) => {
-                        if code.len() == macro_txt.number_of_arguments + 1 {
-                            // Formatting name for error reporting
-                            let mut macro_name = "macro_".to_string();
-                            macro_name.push_str(&code[0]);
-                            // Arguments substitution
-                            let mut expanded_text = macro_txt.content.clone();
-                            for i in 0..macro_txt.number_of_arguments {
-                                let pattern = format!("${}", i+1);
-                                let replacement_slashes_escaped = code[1+i].replace("\\", "\\\\");
-                                let replacement_all_escaped = replacement_slashes_escaped.replace("\"", "\\\"");
-                                let replacement_quoted = format!("\"{}\"", replacement_all_escaped);
-                                let replacement_mono_line = replacement_quoted.replace("\n", "\\n");
-                                expanded_text = expanded_text.replace(&pattern, &replacement_mono_line);
-                            }
-                            // Result generation
-                            let mut expanded_macro = Assembler::from_named_text(&expanded_text, &format!("`macro '{}' expanded from file {} at line {}`", macro_name, meta.source_file, meta.line));
-                            expanded_macro.macros = asm.macros.clone();
-                            expanded_macro.macros.remove(&code[0]); // Remove the macro name to prevent infinite recursion. Instead an error will be raised when the macro is not found. Furthermore, this can be used to shadow macros or instructions.
-                            expand_macros(&mut expanded_macro);
-                            expanded_any_macro = true;
-                            Some(expanded_macro.root)
-                        } else {
-                            let msg = format!("Error, invalid number of arguments for macro {}. Expected {}, got {}.", &code[0], macro_txt.number_of_arguments, code.len() - 1);
-                            Some(Error{msg, meta: meta.clone()})
+                        // Formatting name for error reporting
+                        let mut macro_name = "macro_".to_string();
+                        macro_name.push_str(&code[0]);
+                        // Arguments substitution
+                        let mut expanded_text = macro_txt.clone();
+                        for i in 0..number_of_arguments {
+                            let pattern = format!("${}", i+1);
+                            let replacement_slashes_escaped = code[1+i].replace("\\", "\\\\");
+                            let replacement_all_escaped = replacement_slashes_escaped.replace("\"", "\\\"");
+                            let replacement_quoted = format!("\"{}\"", replacement_all_escaped);
+                            let replacement_mono_line = replacement_quoted.replace("\n", "\\n");
+                            expanded_text = expanded_text.replace(&pattern, &replacement_mono_line);
                         }
+                        // Result generation
+                        let mut expanded_macro = Assembler::from_named_text(&expanded_text, &format!("`macro '{}' expanded from file {} at line {}`", macro_name, meta.source_file, meta.line));
+                        expanded_macro.macros = asm.macros.clone();
+                        expanded_macro.macros.remove(&macro_id); // Remove the macro name to prevent infinite recursion. Instead an error will be raised when the macro is not found. Furthermore, this can be used to shadow macros or instructions.
+                        expand_macros(&mut expanded_macro);
+                        expanded_any_macro = true;
+                        Some(expanded_macro.root)
                     },
                     None => None,
                 }
@@ -148,7 +143,7 @@ pub fn expand_macros(asm: &mut Assembler) -> bool {
 fn test_register_macros() {
     let mut assembler = Assembler::from_text("@macro my_macro 3\nmacromacro\ntxttxt\n@end");
     let expected_hash_map = std::collections::HashMap::from([
-        ("my_macro".to_string(), Macro{number_of_arguments: 3, content: "macromacro\ntxttxt\n".to_string()}),
+        (MacroID{name: "my_macro".to_string(), number_of_arguments: 3}, "macromacro\ntxttxt\n".to_string()),
     ]);
 
     register_macros(&mut assembler);
@@ -184,5 +179,20 @@ fn test_expand_macro_recursive() {
     register_macros(&mut assembler);
     expand_macros(&mut assembler);
     assert_eq!(assembler.root.to_string(), "x a\nx b\n");
+}
+
+#[test]
+fn test_multiple_macro_with_the_same_name() {
+    let mut assembler = Assembler::from_text("@macro dub 1
+                                                  dub $1 $1
+                                              @end
+                                              @macro dub 2
+                                                  $1 $2 $1 $2
+                                              @end
+                                              dub a b
+                                              dub c");
+    register_macros(&mut assembler);
+    expand_macros(&mut assembler);
+    assert_eq!(assembler.root.to_string(), "a b a b\nc c c c\n");
 }
 

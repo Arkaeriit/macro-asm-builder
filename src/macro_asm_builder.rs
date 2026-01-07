@@ -49,8 +49,9 @@ pub struct Assembler<'a> {
     /// code
     root: AsmNode,
 
-    /// A map of all the macros linking their names to their contents
-    macros: HashMap<String, Macro>,
+    /// A map of all the macros linking their names and number of arguments to
+    /// their contents
+    macros: HashMap<MacroID, String>,
 
     /// A map of all flat defines linking their names to their contents
     defines: HashMap<String, Vec<String>>,

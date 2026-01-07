@@ -34,6 +34,10 @@ In assembly, macros are called by doing `<macro_name> <arg1> <arg2> ...`
 
 Note: The first argument is accessed with $1.
 
+Multiples macros can have the same name if they have different number of arguments. When calling the macro, the number of argument given will be used to select which version to call.
+
+It's also possible to shadow instruction mnemonic with a macro, but shadowing a macro with another macro with the same name and same number of argument doesn't works.
+
 ### Flat defines
 
 User-defined macros are only expanded if they are the first element in a line. If you want to have a word be a synonym for any placed words, you can use flat defined as follow:
