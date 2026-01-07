@@ -61,6 +61,19 @@ set height ; Will be expanded to `set 8`
 
 You can use the value of words defined in `@define-math` in other `@define-math`, but not the ones defined in `@define`. `@define-math` uses [Math-Parse](https://github.com/Arkaeriit/math-parse) under the hood, you can use all it's integer functions.
 
+### Labels
+
+Labels can be used to alias addresses in the code or in data.
+
+They are defined in one of the two following ways:
+```
+label_1:
+
+@label label_2
+```
+
+The address of the label can then be written with the directive `@labref label_1`.
+
 ### Sections
 
 By default, the content in the generated binary file follows the order of the content in the source files. But you might want to have more flexibility in where to place code or data. You can do so with the `@section <section name>` directive to declare the position of a section. Then, you can put content at that section by placing it between the directives `@in-section <section name>` and `@end-section`.
@@ -71,8 +84,6 @@ Nesting section is not recommended and might result in unexpected behaviors.
 
 Beyond the directives to declare macros and sections, the assembler offers other directives.
 
-* `@label <name>` defines a position in the code.
-* `@labref <name>` write in the code the address of the label with the given name.
 * `@align <number>` align the next instruction to the number given in bytes.
 * `@pad-until <address>` Add padding until the given address is reached.
 * `@constant <number>` put the value of the number in the machine code.

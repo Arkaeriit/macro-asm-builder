@@ -16,7 +16,19 @@ pub fn register_labels(asm: &mut Assembler) {
                             Some(Error{msg: format!("Error, directive {} takes a label as its only argument.\n", &code[0]), meta: meta.clone()})
                         }
                     },
-                    _ => None,
+                    _ => {
+                        if code.len() == 1 {
+                            let chars = code[0].chars().collect::<Vec<char>>();
+                            if chars[chars.len() - 1] == ':' {
+                                let label_name = chars.clone().into_iter().take(chars.len()-1).collect::<String>();
+                                Some(Label{name: label_name, is_definition: true, meta: meta.clone()})
+                            } else {
+                                None
+                            }
+                        } else {
+                            None
+                        }
+                    },
                 }
             },
             _ => None,
@@ -123,9 +135,9 @@ pub fn label_dump(asm: &mut Assembler) -> String {
 
 #[test]
 fn test_register_labels() {
-    let mut asm = Assembler::from_text("@labref lab\n@label lab");
+    let mut asm = Assembler::from_text("@labref lab1\n@label lab1\n@labref lab2\nlab2:");
     register_labels(&mut asm);
-    assert_eq!(asm.root.to_string(), "Reference to label lab\nDefinition of label lab\n");
+    assert_eq!(asm.root.to_string(), "Reference to label lab1\nDefinition of label lab1\nReference to label lab2\nDefinition of label lab2\n");
 }
 
 #[test]
