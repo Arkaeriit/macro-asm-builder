@@ -92,7 +92,7 @@ let mut asm = macro_asm_builder::Assembler::from_file("file path");
 asm.micro_assembly = &my_micro_assembly_function;
 
 // Optionaly adding a function to handle custom macros
-asm.implementation_macro &my_macro_function
+asm.implementation_macro = &my_macro_function;
 
 // Generating machine code
 match asm.assemble() {
