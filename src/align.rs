@@ -68,7 +68,7 @@ pub fn expand_align(asm: &mut Assembler) {
                 AlignTo(size) => {
                     let mut i = 0;
                     let mut padding: Vec<u8> = vec![];
-                    while !current_offset.is_multiple_of(*size) {
+                    while current_offset % size != 0 {
                         current_offset += 1;
                         padding.push(align_pattern[i % align_pattern.len()]);
                         i += 1;
