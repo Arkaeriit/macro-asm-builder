@@ -38,6 +38,8 @@ Multiples macros can have the same name if they have different number of argumen
 
 It's also possible to shadow instruction mnemonic with a macro, but shadowing a macro with another macro with the same name and same number of argument doesn't works.
 
+If you need some symbol unique inside of a macro expansion, such as to define local labels in a macro, you can use `$?` which will be expanded to a unique value in each macro expansion.
+
 ### Flat defines
 
 User-defined macros are only expanded if they are the first element in a line. If you want to have a word be a synonym for any placed words, you can use flat defined as follow:

@@ -53,6 +53,10 @@ pub struct Assembler<'a> {
     /// their contents
     macros: HashMap<MacroID, String>,
 
+    /// Count of how many time we expanded macros. Needed for expansion-unique
+    /// symbols
+    macro_expansion_count: usize,
+
     /// A map of all flat defines linking their names to their contents
     defines: HashMap<String, Vec<String>>,
 
@@ -104,6 +108,7 @@ impl Assembler<'_> {
             start_address: 0,
             implementation_macro: &default_implementation_macro,
             micro_assembly: &default_micro_assembly,
+            macro_expansion_count: 0,
         }
     }
 

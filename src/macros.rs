@@ -87,8 +87,8 @@ pub fn register_macros(asm: &mut Assembler) -> bool {
     registered_macro
 }
 
-/// Perform all the replacement suitable for macro expantion.
-fn substitution_for_expantion(expanded_text: &str, pattern_from: &str, pattern_to: &str) -> String {
+/// Perform all the replacement suitable for macro expansion.
+fn substitution_for_expansion(expanded_text: &str, pattern_from: &str, pattern_to: &str) -> String {
     let replacement_slashes_escaped = pattern_to.replace("\\", "\\\\");
     let replacement_all_escaped = replacement_slashes_escaped.replace("\"", "\\\"");
     let replacement_quoted = format!("\"{}\"", replacement_all_escaped);
@@ -99,7 +99,18 @@ fn substitution_for_expantion(expanded_text: &str, pattern_from: &str, pattern_t
 /// Search all the sources lines of the code for macro to be expanded. In those
 /// cases, the content of the macro is fetched from the assembler's macro list
 /// and the lines are replaced with an Inode containing the expanded macro.
+/// expansion_counter is to keep track of how many time macro have been expanded
+/// to make unique special expansion for each macro instance.
 pub fn expand_macros(asm: &mut Assembler) -> bool {
+    let mut expansion_counter = asm.macro_expansion_count;
+    let ret = expand_macros_with_explicit_counter(asm, &mut expansion_counter);
+    asm.macro_expansion_count = expansion_counter;
+    ret
+}
+
+/// Same as expand_macro, but the expansion_counter can be given to be
+/// incremented in sub-assemblers.
+fn expand_macros_with_explicit_counter(asm: &mut Assembler, expansion_counter: &mut usize) -> bool {
     let mut expanded_any_macro = false;
 
     let mut expand_macros_closure = | node: &AsmNode | -> Option<AsmNode> {
@@ -120,13 +131,17 @@ pub fn expand_macros(asm: &mut Assembler) -> bool {
                         let mut expanded_text = macro_txt.clone();
                         for i in 0..number_of_arguments {
                             let pattern = format!("${}", i+1);
-                            expanded_text = substitution_for_expantion(&expanded_text, &pattern, &code[i+1]);
+                            expanded_text = substitution_for_expansion(&expanded_text, &pattern, &code[i+1]);
                         }
+                        // Unique symbol expansion
+                        let unique_symbol = format!("usx_{expansion_counter:x}");
+                        expanded_text = substitution_for_expansion(&expanded_text, "$?", &unique_symbol);
+                        *expansion_counter = *expansion_counter + 1;
                         // Result generation
                         let mut expanded_macro = Assembler::from_named_text(&expanded_text, &format!("`macro '{}' expanded from file {} at line {}`", macro_name, meta.source_file, meta.line));
                         expanded_macro.macros = asm.macros.clone();
                         expanded_macro.macros.remove(&macro_id); // Remove the macro name to prevent infinite recursion. Instead an error will be raised when the macro is not found. Furthermore, this can be used to shadow macros or instructions.
-                        expand_macros(&mut expanded_macro);
+                        expand_macros_with_explicit_counter(&mut expanded_macro, expansion_counter);
                         expanded_any_macro = true;
                         Some(expanded_macro.root)
                     },
@@ -199,5 +214,22 @@ fn test_multiple_macro_with_the_same_name() {
     register_macros(&mut assembler);
     expand_macros(&mut assembler);
     assert_eq!(assembler.root.to_string(), "a b a b\nc c c c\n");
+}
+
+#[test]
+fn test_expansion_unique_symbol() {
+    let mut assembler = Assembler::from_text("@macro m1 0
+                                                  m2
+                                                  $?
+                                              @end
+                                              @macro m2 0
+                                                  $?
+                                              @end
+                                              m1
+                                              m2
+                                              m1");
+    register_macros(&mut assembler);
+    expand_macros(&mut assembler);
+    assert_eq!(assembler.root.to_string(), "usx_1\nusx_0\nusx_2\nusx_4\nusx_3\n");
 }
 
