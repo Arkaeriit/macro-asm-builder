@@ -1,3 +1,5 @@
+#![allow(clippy::type_complexity)]
+
 /// A module defining the AsmNode enum, which is used to represent and process
 /// the assembly code.
 mod tree;
@@ -116,7 +118,7 @@ impl Assembler<'_> {
     pub fn from_file(path: &str) -> Self {
         let mut import_directive = "@import \"".to_string();
         import_directive.push_str(path);
-        import_directive.push_str("\"");
+        import_directive.push('\"');
         Self::from_text(&import_directive)
     }
 
@@ -263,7 +265,7 @@ impl Assembler<'_> {
         let mut ret = vec![];
         for _i in 0..self.wordsize {
             ret.push((n & 0xFF) as u8);
-            n = n >> 8
+            n >>= 8
         }
         if n == 0 {
             Some(ret)
@@ -286,7 +288,7 @@ impl Assembler<'_> {
                         return None
                     }
                     // Remove sign extenton bits
-                    num_shorten = num_shorten & !(0xFF << (i*8));
+                    num_shorten &= !(0xFF << (i*8));
                 }
                 self.format_number(num_shorten)
             },

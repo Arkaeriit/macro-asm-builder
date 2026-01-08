@@ -30,7 +30,7 @@ pub fn include_source(asm: &mut Assembler) -> bool {
                                         code[1].clone()
                                     } else {
                                         let mut target_path_mut = path.to_string();
-                                        target_path_mut.push_str("/");
+                                        target_path_mut.push('/');
                                         target_path_mut.push_str(&code[1]);
                                         target_path_mut
                                     };

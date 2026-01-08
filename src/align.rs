@@ -61,17 +61,17 @@ pub fn expand_align(asm: &mut Assembler) {
     let mut expanding_align = | node: &AsmNode | -> Option<AsmNode> {
         match node {
             Raw(data) => {
-                current_offset = current_offset + data.len();
+                current_offset += data.len();
                 None
             },
             Align{kind, meta} => match kind {
                 AlignTo(size) => {
                     let mut i = 0;
                     let mut padding: Vec<u8> = vec![];
-                    while current_offset % size != 0 {
-                        current_offset = current_offset + 1;
+                    while !current_offset.is_multiple_of(*size) {
+                        current_offset += 1;
                         padding.push(align_pattern[i % align_pattern.len()]);
-                        i = i + 1;
+                        i += 1;
                     }
                     Some(Raw(padding))
                 },
@@ -92,13 +92,13 @@ pub fn expand_align(asm: &mut Assembler) {
             },
             Label{name: _name,  is_definition, meta: _meta} => {
                 if !is_definition {
-                    current_offset = current_offset + asm.wordsize;
+                    current_offset += asm.wordsize;
                 }
                 None
             },
             Error{msg: _, meta: _} => None,
             x => {
-                Some(Error{msg: format!("There is a bug in the assembler. A node should not have been left while in expand_align: {}.", x.to_string()), meta: Metadata{raw: "!!!".to_string(), source_file: "!!!".to_string(), line: !0}})
+                Some(Error{msg: format!("There is a bug in the assembler. A node should not have been left while in expand_align: {}.", x), meta: Metadata{raw: "!!!".to_string(), source_file: "!!!".to_string(), line: !0}})
             },
         }
     };

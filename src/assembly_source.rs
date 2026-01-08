@@ -42,33 +42,27 @@ fn parse_line(line: &str) -> Vec<String> {
                     x => x,
                 });
                 last_escaped = false;
+            } else if line_as_char[i] == '"' {
+                in_quote = false;
+                let quoted_string: String = new_quoted_string.iter().collect();
+                ret.push(quoted_string);
+            } else if line_as_char[i] == '\\' {
+                last_escaped = true;
             } else {
-                if line_as_char[i] == '"' {
-                    in_quote = false;
-                    let quoted_string: String = new_quoted_string.iter().collect();
-                    ret.push(quoted_string);
-                } else if line_as_char[i] == '\\' {
-                    last_escaped = true;
-                } else {
-                    new_quoted_string.push(line_as_char[i]);
-                }
+                new_quoted_string.push(line_as_char[i]);
             }
-        } else {
-            if in_whitespace {
-                if line_as_char[i] == '"' {
-                    in_quote = true;
-                    new_quoted_string = Vec::<char>::new();
-                } else if !line_as_char[i].is_whitespace() {
-                    in_whitespace = false;
-                    word_start = i;
-                }
-            } else {
-                if line_as_char[i].is_whitespace() {
-                    in_whitespace = true;
-                    let word_to_add = &line_as_char[word_start..i];
-                    ret.push(word_to_add.iter().cloned().collect::<String>());
-                }
+        } else if in_whitespace {
+            if line_as_char[i] == '"' {
+                in_quote = true;
+                new_quoted_string = Vec::<char>::new();
+            } else if !line_as_char[i].is_whitespace() {
+                in_whitespace = false;
+                word_start = i;
             }
+        } else if line_as_char[i].is_whitespace() {
+            in_whitespace = true;
+            let word_to_add = &line_as_char[word_start..i];
+            ret.push(word_to_add.iter().cloned().collect::<String>());
         }
     }
     ret
@@ -83,7 +77,7 @@ fn parse_text(text: &str) -> Vec<(Vec<String>, usize, String)> {
     let mut line_index = 1;
     for line in text.split("\n") {
         let parsed = parse_line(line);
-        if parsed.len() != 0 {
+        if !parsed.is_empty() {
             ret.push((parsed, line_index, line.to_string()));
         }
         line_index += 1;

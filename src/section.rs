@@ -61,7 +61,7 @@ fn code_in_sections(asm: &mut Assembler) -> HashMap<String, Vec<AsmNode>> {
                             Some(Empty)
                         },
                         "@in-section" => {
-                            Some(Error{msg: format!("Error, directives @in-section can't be nested.\n"), meta: meta.clone()})
+                            Some(Error{msg: "Error, directives @in-section can't be nested.\n".to_string(), meta: meta.clone()})
                         },
                         _ =>  {
                             new_section_code.push(Source{code: code.to_vec(), meta: meta.clone()});
@@ -79,7 +79,7 @@ fn code_in_sections(asm: &mut Assembler) -> HashMap<String, Vec<AsmNode>> {
                 Source{code, meta} => {
                     match code[0].as_str() {
                         "@end-section" => {
-                            Some(Error{msg: format!("Error, directives @end-section can only be put after a @in-section directive.\n"), meta: meta.clone()})
+                            Some(Error{msg: "Error, directives @end-section can only be put after a @in-section directive.\n".to_string(), meta: meta.clone()})
                         },
                         "@in-section" => {
                             if code.len() == 2 {
@@ -121,7 +121,7 @@ fn fill_sections(asm: &mut Assembler, mut map: HashMap<String, Vec<AsmNode>>) {
     };
 
     asm.root.traverse_tree(&mut filling_section);
-    if map.len() != 0 {
+    if !map.is_empty() {
         let mut err_msg = format!("Error, {} sections have code in them but have not been declared: ", map.len());
         for section in map.keys() {
             err_msg.push_str(&format!("{}, ", section));

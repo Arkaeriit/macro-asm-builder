@@ -9,7 +9,7 @@ pub fn register_strings(asm: &mut Assembler) {
             Source{code, meta} => match code[0].as_str() {
                 "@string" | "@string-0" | "@string-nl" | "@string-nl-0" => {
                     if code.len() == 2 {
-                        Some(Raw(string_registration(&code)))
+                        Some(Raw(string_registration(code)))
                     } else {
                         Some(Error{msg: format!("Error, {} directive should be in the form `{} \"txt\".", &code[0], &code[0]), meta: meta.clone()})
                     }
@@ -23,17 +23,17 @@ pub fn register_strings(asm: &mut Assembler) {
 }
 
 /// Register a valid string macro
-fn string_registration(code: &Vec<String>) -> Vec<u8> {
+fn string_registration(code: &[String]) -> Vec<u8> {
     let mut ret = code[1].as_bytes().to_vec(); 
     match code[0].as_str() {
         "@string-0" => {
             ret.push(0);
         },
         "@string-nl" => {
-            ret.push('\n' as u8);
+            ret.push(b'\n');
         },
         "@string-nl-0" => {
-            ret.push('\n' as u8);
+            ret.push(b'\n');
             ret.push(0);
         },
         "@string" => {},

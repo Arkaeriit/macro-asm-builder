@@ -78,11 +78,11 @@ pub fn decode_raw_bytes(asm: &mut Assembler) {
                 if &code[0] == "@rawbytes" {
                     // An empty rawbyte statement can be considered valid so no length checking
                     let mut data: Vec<u8> = vec![];
-                    for i in 1..code.len() {
-                        match u8::from_str_radix(&code[i], 16) {
+                    for byte in code.iter().skip(1) {
+                        match u8::from_str_radix(byte, 16) {
                             Ok(num) => {data.push(num);},
                             Err(_) => {
-                                return Some(Error{msg: format!("Error, unable to read byte {} in @rawbyte directive.", &code[i]), meta: meta.clone()});
+                                return Some(Error{msg: format!("Error, unable to read byte {} in @rawbyte directive.", byte), meta: meta.clone()});
                             },
                         }
                     }

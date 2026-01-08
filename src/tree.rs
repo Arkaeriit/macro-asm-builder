@@ -106,13 +106,13 @@ impl AsmNode {
 
     /// Add an error on an inode.
     pub fn error_on_top(&mut self, msg: String) {
-        self.add_on_top(Error{msg: msg, meta: Metadata{raw: "!!!".to_string(), source_file: "!!!".to_string(), line: 0}});
+        self.add_on_top(Error{msg, meta: Metadata{raw: "!!!".to_string(), source_file: "!!!".to_string(), line: 0}});
     }
 }
 
-impl std::string::ToString for AsmNode {
-    fn to_string(&self) -> String {
-        match self {
+impl std::fmt::Display for AsmNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let ret = match self {
             Empty => "".to_string(),
             Inode(nodes) => {
                 let mut ret = "".to_string();
@@ -123,11 +123,11 @@ impl std::string::ToString for AsmNode {
             },
             Source{code, meta: _} => {
                 let mut ret = code[0].to_string();
-                for i in 1..code.len() {
-                    ret.push_str(" ");
-                    ret.push_str(&code[i]);
+                for argument in code.iter().skip(1) {
+                    ret.push(' ');
+                    ret.push_str(argument);
                 }
-                ret.push_str("\n");
+                ret.push('\n');
                 ret
             }
             Error{msg, meta} => {
@@ -139,7 +139,7 @@ impl std::string::ToString for AsmNode {
                 ret.push_str(&meta.line.to_string());
                 ret.push_str(" raw_line: ");
                 ret.push_str(&meta.raw);
-                ret.push_str("\n");
+                ret.push('\n');
                 ret
             },
             Raw(data) => {
@@ -147,7 +147,7 @@ impl std::string::ToString for AsmNode {
                 for byte in data {
                     ret.push_str(&format!("0x{:02X} ", byte));
                 }
-                ret.push_str("\n");
+                ret.push('\n');
                 ret
             },
             Align{kind, meta: _} => match kind {
@@ -164,7 +164,8 @@ impl std::string::ToString for AsmNode {
             Section{name, content: _} => {
                  format!("Section {}\n", name)
             }
-        }
+        };
+        write!(f, "{}", ret)
     }
 }
 

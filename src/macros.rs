@@ -36,22 +36,20 @@ pub fn register_macros(asm: &mut Assembler) -> bool {
                     "@macro" => {
                         if in_macro {
                             Some(Error{msg: "Error, macro definitions can't be nested.".to_string(), meta: meta.clone()})
-                        } else {
-                            if code.len() == 3 {
-                                in_macro = true;
-                                new_macro_id.name = code[1].clone();
-                                let number_of_arguments: Result<usize, _> = code[2].parse();
-                                match number_of_arguments {
-                                    Ok(x) => {
-                                        new_macro_id.number_of_arguments = x;
-                                        Some(Empty)
-                                    },
-                                    Err(_) =>
-                                        Some(Error{msg: "Error, macro definitions should have the form `@macro <macro name> <number_of_arguments>`.".to_string(), meta: meta.clone()})
-                                }
-                            } else {
-                                Some(Error{msg: "Error, macro definitions should have the form `@macro <macro name> <number_of_arguments>`.".to_string(), meta: meta.clone()})
+                        } else if code.len() == 3 {
+                            in_macro = true;
+                            new_macro_id.name = code[1].clone();
+                            let number_of_arguments: Result<usize, _> = code[2].parse();
+                            match number_of_arguments {
+                                Ok(x) => {
+                                    new_macro_id.number_of_arguments = x;
+                                    Some(Empty)
+                                },
+                                Err(_) =>
+                                    Some(Error{msg: "Error, macro definitions should have the form `@macro <macro name> <number_of_arguments>`.".to_string(), meta: meta.clone()})
                             }
+                        } else {
+                            Some(Error{msg: "Error, macro definitions should have the form `@macro <macro name> <number_of_arguments>`.".to_string(), meta: meta.clone()})
                         }
                     },
                     "@end" => {
@@ -68,7 +66,7 @@ pub fn register_macros(asm: &mut Assembler) -> bool {
                     _ => {
                         if in_macro {
                             new_macro_content.push_str(&meta.raw);
-                            new_macro_content.push_str("\n");
+                            new_macro_content.push('\n');
                             Some(Empty)
                         } else {
                             None
@@ -93,7 +91,7 @@ fn substitution_for_expansion(expanded_text: &str, pattern_from: &str, pattern_t
     let replacement_all_escaped = replacement_slashes_escaped.replace("\"", "\\\"");
     let replacement_quoted = format!("\"{}\"", replacement_all_escaped);
     let replacement_mono_line = replacement_quoted.replace("\n", "\\n");
-    expanded_text.replace(&pattern_from, &replacement_mono_line)
+    expanded_text.replace(pattern_from, &replacement_mono_line)
 }
 
 /// Search all the sources lines of the code for macro to be expanded. In those
@@ -136,7 +134,7 @@ fn expand_macros_with_explicit_counter(asm: &mut Assembler, expansion_counter: &
                         // Unique symbol expansion
                         let unique_symbol = format!("usx_{expansion_counter:x}");
                         expanded_text = substitution_for_expansion(&expanded_text, "$?", &unique_symbol);
-                        *expansion_counter = *expansion_counter + 1;
+                        *expansion_counter += 1;
                         // Result generation
                         let mut expanded_macro = Assembler::from_named_text(&expanded_text, &format!("`macro '{}' expanded from file {} at line {}`", macro_name, meta.source_file, meta.line));
                         expanded_macro.macros = asm.macros.clone();

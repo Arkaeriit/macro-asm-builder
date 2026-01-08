@@ -55,17 +55,17 @@ pub fn expand_labels(asm: &mut Assembler) {
                         None
                     }
                 } else {
-                    current_offset = current_offset+asm.wordsize;
+                    current_offset += asm.wordsize;
                     None
                 }
             },
             Raw(data) => {
-                current_offset = current_offset + data.len();
+                current_offset += data.len();
                 None
             },
             Error{msg: _, meta: _} => None,
             x => {
-                Some(Error{msg: format!("There is a bug in the assembler. A node should not have been left while in expand_labels: {}.", x.to_string()), meta: Metadata{raw: "!!!".to_string(), source_file: "!!!".to_string(), line: !0}})
+                Some(Error{msg: format!("There is a bug in the assembler. A node should not have been left while in expand_labels: {x}."), meta: Metadata{raw: "!!!".to_string(), source_file: "!!!".to_string(), line: !0}})
             },
         }
     };
@@ -111,11 +111,11 @@ pub fn label_dump(asm: &mut Assembler) -> String {
                 if *is_definition {
                     ret.push_str(&format!("{}: 0x{:X}\n", &name, current_offset));
                 } else {
-                    current_offset = current_offset+asm.wordsize;
+                    current_offset += asm.wordsize;
                 }
             },
             Raw(data) => {
-                current_offset = current_offset + data.len();
+                current_offset += data.len();
             },
             Error{msg: _, meta: _} => {
                 return None;
