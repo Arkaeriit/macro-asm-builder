@@ -48,7 +48,7 @@ set_10_plus 3
 ";
 
 /// Make an assembler with the implementation defined above
-fn make_assembler(code: &str) -> macro_asm_builder::Assembler {
+fn make_assembler(code: &str) -> macro_asm_builder::Assembler<'_> {
     let mut asm = macro_asm_builder::Assembler::from_text(code);
     asm.add_text_before(MY_RUNTIME_START, "runtime");
     asm.add_text_after(MY_RUNTIME_END, "runtime");
